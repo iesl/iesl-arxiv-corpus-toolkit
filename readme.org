@@ -1,0 +1,6 @@
+
+** Tools to help create cross-discipline research paper corpora, initially from ArXiv hosted papers
+   
+
+
+cat grep-res.txt | grep '\[' |  perl -pne 's/.*\[//g' |  perl -pne 's/\].*//g'  | sort | uniq

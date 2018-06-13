@@ -1,0 +1,32 @@
+# Users Environment Variables
+.lock-wscript
+
+# SBT
+target
+project/target
+project/project
+
+# IntelliJ IDEA
+.idea*
+.idea_modules
+*.iml
+
+*.sw?
+.ensime*
+ensime*
+
+
+# Common directory names
+*.d
+*.db
+
+*~
+/corpus-*
+/*.pdf.json
+.zz-attic
+
+*.log
+*.tmp
+
+.sbtopts
+.bloop

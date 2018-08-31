@@ -1,6 +1,40 @@
+* Tools to help select cross-discipline research paper corpora from ArXiv hosted papers
 
-** Tools to help create cross-discipline research paper corpora, initially from ArXiv hosted papers
-   
+** Process
 
+*** PDFs are downloaded in bulk as tar files via s3cmd
 
-cat grep-res.txt | grep '\[' |  perl -pne 's/.*\[//g' |  perl -pne 's/\].*//g'  | sort | uniq
+    See https://arxiv.org/help/bulk_data_s3
+
+    Sample session:
+    > s3cmd ls --requester-pays s3://arxiv/pdf/\* > arxiv-pdf-list.txt
+    > s3cmd get --skip-existing --requester-pays s3://arxiv/pdf/arXiv_pdf_0001_\*
+
+*** Extract PDFs from tarfiles
+
+*** Extract arXiv discipline identifiers for each PDF
+    - e.g., astro-ph.he, math.nt
+
+    Run script ./bin/anayze.sh, which produces output like the following:
+
+    > bin/analyze.sh path/to/pdfs
+
+        tarballs/arXiv_pdf_1105_001.tar.d/1105/1105.0154.pdf: arXiv:1105.0154v1 [astro-ph.HE] 1 May 2011
+        tarballs/arXiv_pdf_1105_001.tar.d/1105/1105.0292.pdf: arXiv:1105.0292v1 [math.NT] 2 May 2011
+        tarballs/arXiv_pdf_1105_001.tar.d/1105/1105.0535.pdf: arXiv:1105.0535v1 [hep-th] 3 May 2011
+        tarballs/arXiv_pdf_1105_001.tar.d/1105/1105.0243.pdf: arXiv:1105.0243v1 [astro-ph.EP] 2 May 2011
+
+*** Extract the displine codes for each line, and build a table mapping disciplines to PDFs
+
+    Pipe the output of the analyze.sh script to a file and run the following:
+
+    > sbt runMain Main --category-file  analyze-output.txt --output include-pdfs.txt --stats-output included-stats.txt
+
+    Output will consist of 2 files: a stats file with entries mapping discipline code (case and whitespace normalized) like so:
+
+        6 PDFs for discipline: q bio cb
+          tarballs/arXiv_pdf_1303_001.tar.d/1303/1303.0671.pdf
+          tarballs/arXiv_pdf_1305_001.tar.d/1305/1305.0782.pdf
+          ...
+          
+    Included PDFs output file will contain filenames for PDFs chosen across all disciplines

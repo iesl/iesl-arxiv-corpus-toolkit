@@ -11,7 +11,6 @@ while getopts n:h name; do
 done
 
 
-# TXT=$(pdftotext - - | egrep -i '^arxiv') < /dev/stdin
-TXT=$(pdftotext $pdfname - | egrep -i '^arxiv') 
+TXT=$(pdftotext $pdfname - | egrep -i '^arxiv')
 
 echo "$pdfname: $TXT"

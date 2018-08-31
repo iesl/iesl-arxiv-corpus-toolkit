@@ -1,32 +1,30 @@
 
-
+import scala.collection.mutable
+import ammonite.{ops => fs}  , fs._
 
 object Main extends App {
+  import Helpers._
 
+  val argMap = argsToMap(args)
+  val categoryInputFile = argMap.get("category-file").flatMap(_.headOption)
+    .getOrElse(sys.error("missing --category-file option"))
 
-  import scala.collection.mutable
+  val pdfsOutputFile = argMap.get("pdf-output").flatMap(_.headOption)
+    .getOrElse(sys.error(""))
 
-  // val catToBuffer = io.Source.fromFile("categories.txt").getLines.map{ line =>
-  //   val normalCat = line.replaceAll("\\W", " ")
-  //   ( normalCat, mutable.ArrayBuffer[String]() )
-  // }
+  val statsFile = argMap.get("stats-output").flatMap(_.headOption)
+    .getOrElse(sys.error(""))
 
-  val entriesByDiscipline = mutable.HashMap[String, mutable.ArrayBuffer[String]]()
+  val  pdfsByDiscipline = mutable.HashMap[String, mutable.ArrayBuffer[String]]()
 
-  // entriesByDiscipline ++= catToBuffer
-
-  io.Source.fromFile("pdf-cats.txt").getLines.foreach{ arxivCat =>
-    if (arxivCat.contains("tarball") && arxivCat.contains("[") && arxivCat.contains("]")) {
-      // println(s"trying: ${arxivCat}")
+  io.Source.fromFile(categoryInputFile).getLines.foreach{ inputLine =>
+    if (inputLine.contains(".pdf:") && inputLine.contains("[") && inputLine.contains("]")) {
       try {
-        val Array(pre, post)  = arxivCat.split("\\[")
-        // println(s"pre/post: ${pre} / $post")
+        val Array(pre, post)  = inputLine.split("\\[")
         val Array(catstr, x) = post.split("\\]")
-        // println(s"cat/_: ${cat} / $x")
-        val cat = catstr.toLowerCase().replaceAll("\\W", " ")
-        // println(s"cat: ${cat}")
-        val filename = arxivCat.split(":")(0)
-        val buf = entriesByDiscipline.getOrElseUpdate(cat, mutable.ArrayBuffer[String]())
+        val disciplineCode = catstr.toLowerCase().replaceAll("\\W", " ")
+        val filename = inputLine.split(":")(0)
+        val buf = pdfsByDiscipline.getOrElseUpdate(disciplineCode, mutable.ArrayBuffer[String]())
         buf.append(filename)
 
       } catch {
@@ -35,26 +33,47 @@ object Main extends App {
     }
   }
 
-
-  println(s"Total disciplines: ${entriesByDiscipline.keySet.size}")
+  println(s"Total disciplines: ${pdfsByDiscipline.keySet.size}")
 
   val filenameBuffer = mutable.ArrayBuffer[String]()
 
-
-  entriesByDiscipline.foreach { case (cat, filenames) =>
-    val entry = cat + "\n" + filenames.mkString("\n  ", "\n  ", "\n")
+  val allEntries = pdfsByDiscipline.map { case (disciplineCode, filenames) =>
+    val entry = s"${filenames.length} PDFs for discipline: ${disciplineCode}" + filenames.mkString("\n  ", "\n  ", "\n")
     val topNames = filenames.take(51)
-
-    // val topNameStr = topNames.mkString("\n  ", "\n  ", "\n")
-    val topNameStr = topNames.mkString("\n", "\n", "")
-
     filenameBuffer.appendAll(topNames)
-    // println(s"${cat} ${topNameStr}")
-    // println(topNameStr)
+    entry
   }
 
   println(s"Total files = ${filenameBuffer.length}")
-  println(filenameBuffer.mkString("\n"))
+  val includePdfs = filenameBuffer.mkString("\n")
+
+  val pdfOutput = fs.pwd / pdfsOutputFile
+  val statsOutput = fs.pwd / statsFile
+  if (fs.exists(pdfOutput)) fs.rm(pdfOutput)
+  if (fs.exists(statsOutput)) fs.rm(statsOutput)
+
+  fs.write(pdfOutput, includePdfs)
+  fs.write(statsOutput, allEntries.mkString("\n\n"))
+
+}
+
+
+object Helpers {
+
+  def argsToMap(args: Array[String]): Map[String, List[String]] = {
+    import scala.collection.mutable.{ListMap => LMap}
+    val argmap = LMap[String, List[String]]()
+    args.foldLeft(argmap)({(m, k:String) => {
+      val ss:Seq[Char] = k
+      ss match {
+        case Seq('-', '-', opt @ _*) => m.put(opt.toString, List[String]())
+        case Seq('-', opt @ _*) => m.put(opt.toString, List[String]())
+        case opt @ _ => m.put(m.head._1, m.head._2 ++ List[String](opt.toString))
+      }
+      m
+    }})
+    Map[String, List[String]](argmap.toList.reverse: _*)
+  }
 
 
 }

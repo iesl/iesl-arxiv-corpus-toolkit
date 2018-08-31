@@ -19,10 +19,12 @@
 
     > bin/analyze.sh path/to/pdfs
 
+    ```
         tarballs/arXiv_pdf_1105_001.tar.d/1105/1105.0154.pdf: arXiv:1105.0154v1 [astro-ph.HE] 1 May 2011
         tarballs/arXiv_pdf_1105_001.tar.d/1105/1105.0292.pdf: arXiv:1105.0292v1 [math.NT] 2 May 2011
         tarballs/arXiv_pdf_1105_001.tar.d/1105/1105.0535.pdf: arXiv:1105.0535v1 [hep-th] 3 May 2011
         tarballs/arXiv_pdf_1105_001.tar.d/1105/1105.0243.pdf: arXiv:1105.0243v1 [astro-ph.EP] 2 May 2011
+    ```
 
 *** Extract the displine codes for each line, and build a table mapping disciplines to PDFs
 
@@ -32,9 +34,11 @@
 
     Output will consist of 2 files: a stats file with entries mapping discipline code (case and whitespace normalized) like so:
 
+    ```
         6 PDFs for discipline: q bio cb
           tarballs/arXiv_pdf_1303_001.tar.d/1303/1303.0671.pdf
           tarballs/arXiv_pdf_1305_001.tar.d/1305/1305.0782.pdf
           ...
+    ```
           
     Included PDFs output file will contain filenames for PDFs chosen across all disciplines
